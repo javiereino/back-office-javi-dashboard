@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pixel Agents</title>
+    <style>
+      body{margin:0;background:#17130f;color:#f6efe2;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow:hidden}
+      .room{position:relative;height:100vh;background:linear-gradient(#211a13 0 0) 0 0/100% 62%,linear-gradient(#100d0a,#271f17) 0 62%/100% 38%;background-repeat:no-repeat}
+      .door{position:absolute;right:10%;top:17%;width:110px;height:210px;border:5px solid #4c3b28;background:#0d0b09}
+      .label{position:absolute;left:22px;top:18px;font:700 22px system-ui}
+      .agent{position:absolute;width:74px;height:92px;image-rendering:pixelated;transition:left .8s linear,top .8s linear}
+      .head{width:42px;height:34px;margin:auto;background:#d94b35;border:4px solid #3a2018}
+      .body{width:58px;height:44px;margin:0 auto;background:#8f1f1d;border:4px solid #3a2018;display:grid;place-items:center;color:#9df;font-size:9px}
+      .legs{display:flex;justify-content:center;gap:12px}.legs span{width:12px;height:20px;background:#3a2018}
+      .bubble{position:absolute;left:52px;top:-22px;white-space:nowrap;background:#f6efe2;color:#17130f;border:3px solid #3a2018;padding:4px 6px;font-size:11px}
+      .status{position:absolute;right:20px;bottom:20px;width:260px;background:#211a13;border:3px solid #4c3b28;padding:12px}
+      .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;background:#22c55e}.idle .dot{background:#64748b}.busy .dot{background:#f97316}
+    </style>
+  </head>
+  <body>
+    <div class="room"><div class="label">Pixel Agents, oficina local</div><div class="door"></div><div id="agents"></div><div class="status" id="status"></div></div>
+    <script>
+      const names=['Nono','SeizureBrief','VibeCoder'];
+      const work=['analizando pulso','ordenando tareas','generando UI','esperando señal','en sala de al lado'];
+      const wrap=document.getElementById('agents'), panel=document.getElementById('status');
+      const state=names.map((name,i)=>({name,busy:i!==1,x:120+i*130,y:390+i*12,msg:work[i]}));
+      function tick(){
+        state.forEach((a,i)=>{ a.busy=Math.random()>.35; a.x=a.busy?110+i*170+Math.random()*70:innerWidth-180-Math.random()*70; a.y=a.busy?360+Math.random()*55:230+Math.random()*70; a.msg=a.busy?work[(Date.now()/1000+i|0)%3]:work[4]; });
+        render();
+      }
+      function render(){
+        wrap.innerHTML=state.map(a=>`<div class="agent ${a.busy?'busy':'idle'}" style="left:${a.x}px;top:${a.y}px"><div class="bubble">${a.msg}</div><div class="head"></div><div class="body">${a.name.slice(0,4)}</div><div class="legs"><span></span><span></span></div></div>`).join('');
+        panel.innerHTML='<b>Estados en tiempo real</b><br><br>'+state.map(a=>`<span class="dot"></span>${a.name}: ${a.busy?'trabajando':'sala de al lado'}`).join('<br>');
+      }
+      render(); setInterval(tick,1800);
+    </script>
+  </body>
+</html>
