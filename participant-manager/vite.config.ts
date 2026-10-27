@@ -117,6 +117,15 @@ export default defineConfig({
       },
     }),
   ],
-  build: { outDir: 'dist', chunkSizeWarningLimit: 2000 },
+  build: {
+    // Built app is committed and served by GitHub Pages at …/participant-manager/app/
+    outDir: 'app',
+    emptyOutDir: true,
+    chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      // GitHub Pages (Jekyll) ignores files starting with "_"
+      output: { chunkFileNames: (c) => `assets/${c.name.replace(/^_+/, '') || 'chunk'}-[hash].js` },
+    },
+  },
   test: { environment: 'node' },
 } as any)

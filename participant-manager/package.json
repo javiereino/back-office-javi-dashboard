@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "test": "vitest run",
-    "e2e": "node e2e/run.mjs",
+    "e2e": "NODE_PATH=$(npm root -g) node e2e/run.mjs",
     "sample": "node scripts/make-sample.mjs"
   },
   "dependencies": {

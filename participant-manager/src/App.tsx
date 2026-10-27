@@ -175,6 +175,8 @@ function TopBar({ onMenu }: { onMenu: () => void }) {
               key={l}
               onClick={() => setLang(l)}
               aria-pressed={lang === l}
+              aria-label={l === 'en' ? 'English' : 'Español'}
+              lang={l}
               className={cn(
                 'rounded-md px-2 py-1 text-xs font-bold uppercase',
                 lang === l ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',

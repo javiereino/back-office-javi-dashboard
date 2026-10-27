@@ -2,4 +2,4 @@ node_modules
 *.log
 e2e/out
 test-results
-dist-dev
+dist

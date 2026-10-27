@@ -1,0 +1,26 @@
+// Verifies the PWA works offline after the first successful load.
+import { createRequire } from 'node:module'
+const { chromium } = createRequire(import.meta.url)('playwright')
+const base = process.env.BASE ?? 'http://localhost:4173/'
+const out = new URL('./out/', import.meta.url).pathname
+const b = await chromium.launch()
+const ctx = await b.newContext({ viewport: { width: 390, height: 844 } })
+const p = await ctx.newPage()
+await p.goto(base)
+await p.evaluate(() => navigator.serviceWorker.ready)
+await p.getByRole('button', { name: /demonstration/i }).click()
+await p.waitForTimeout(1500)
+await ctx.setOffline(true)
+await p.reload()
+await p.goto(base + '#/participants')
+await p.waitForTimeout(1200)
+const cards = await p.locator('article').count()
+await p.getByRole('button', { name: 'Español' }).click()
+await p.waitForTimeout(300)
+await p.screenshot({ path: out + 'offline-mobile-es.png' })
+await p.goto(base + '#/import')
+await p.waitForTimeout(500)
+await p.screenshot({ path: out + 'offline-mobile-import-es.png', fullPage: true })
+console.log(cards > 20 ? 'PASS' : 'FAIL', ` offline reload shows ${cards} participant cards`)
+await b.close()
+process.exit(cards > 20 ? 0 : 1)
