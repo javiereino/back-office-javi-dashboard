@@ -1,0 +1,170 @@
+@import 'tailwindcss';
+@import '@fontsource/public-sans/400.css';
+@import '@fontsource/public-sans/500.css';
+@import '@fontsource/public-sans/600.css';
+@import '@fontsource/public-sans/700.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Light theme (optional) */
+:root {
+  --background: #eef2f7;
+  --foreground: #10213a;
+  --card: #ffffff;
+  --card-2: #f5f8fc;
+  --muted: #e6ecf4;
+  --muted-foreground: #5a6b83;
+  --border: #d4dde9;
+  --input: #ffffff;
+  --primary: #0e72c4;
+  --primary-foreground: #ffffff;
+  --accent: #0e8fbf;
+  --cta: #ea6a24;
+  --cta-foreground: #ffffff;
+  --success: #138a52;
+  --warning: #a86200;
+  --warning-bg: #fff3dc;
+  --destructive: #c8333b;
+  --row-alt: #f4f7fb;
+  --group: #e4ecf6;
+  --glow: rgba(14, 114, 196, 0.12);
+  --sidebar: #081426;
+  --sidebar-2: #0d1d34;
+  --sidebar-foreground: #c9d6e6;
+  --sidebar-active: #1252b8;
+  --ring: #0e72c4;
+}
+
+/* Dark operational theme (default) — #081426 / #10243E / #35BCE8 */
+.dark {
+  --background: #081426;
+  --foreground: #e8eff8;
+  --card: #0d1d34;
+  --card-2: #10243e;
+  --muted: #142b48;
+  --muted-foreground: #8ea3bf;
+  --border: #1d3a5f;
+  --input: #0b1a2f;
+  --primary: #1f6fe0;
+  --primary-foreground: #ffffff;
+  --accent: #35bce8;
+  --cta: #f0702c;
+  --cta-foreground: #ffffff;
+  --success: #37c98a;
+  --warning: #f2b14a;
+  --warning-bg: rgba(242, 177, 74, 0.12);
+  --destructive: #f05d64;
+  --row-alt: #0f2340;
+  --group: #12294a;
+  --glow: rgba(53, 188, 232, 0.18);
+  --sidebar: #060f1e;
+  --sidebar-2: #0b1a30;
+  --sidebar-foreground: #b9c9de;
+  --sidebar-active: #1452b5;
+  --ring: #35bce8;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-cta: var(--cta);
+  --color-cta-foreground: var(--cta-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-destructive: var(--destructive);
+  --color-row-alt: var(--row-alt);
+  --color-group: var(--group);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-2: var(--sidebar-2);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-ring: var(--ring);
+  --font-sans: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  .dark body {
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(31, 111, 224, 0.12), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(53, 188, 232, 0.06), transparent 60%), var(--background);
+    background-attachment: fixed;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Glowing stat / panel card used across the operational dashboard */
+  .panel {
+    background: linear-gradient(180deg, var(--card-2), var(--card));
+    border: 1px solid var(--border);
+    border-radius: 0.875rem;
+  }
+  .panel-glow {
+    background: linear-gradient(160deg, var(--card-2), var(--card) 70%);
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+    box-shadow:
+      0 0 0 1px var(--glow) inset,
+      0 0 22px -6px var(--glow);
+    border-radius: 0.875rem;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* flag-icons sizing */
+.fi-img {
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.125rem;
+  border-radius: 3px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+  flex: none;
+}
+
+@media print {
+  aside,
+  header,
+  .no-print {
+    display: none !important;
+  }
+}
