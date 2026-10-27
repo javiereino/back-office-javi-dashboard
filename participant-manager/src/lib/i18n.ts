@@ -77,6 +77,7 @@ const en = {
   backupReminder: 'Last backup: {when}. Browser data can be erased; download a backup regularly.',
   backupNever: 'You have never downloaded a backup. Browser data can be erased; download one now.',
   downloadBackup: 'Download backup',
+  lastBackupAt: 'Last backup: {when}',
   viewAll: 'View all',
   others: 'Others',
   // projects
@@ -419,6 +420,7 @@ const es: Dict = {
   backupReminder: 'Última copia: {when}. Los datos del navegador pueden borrarse; descarga una copia con regularidad.',
   backupNever: 'Nunca has descargado una copia de seguridad. Los datos del navegador pueden borrarse; descárgala ahora.',
   downloadBackup: 'Descargar copia',
+  lastBackupAt: 'Última copia: {when}',
   viewAll: 'Ver todos',
   others: 'Otros',
   projectsTitle: 'Proyectos',
