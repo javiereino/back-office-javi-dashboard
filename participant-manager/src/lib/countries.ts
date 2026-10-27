@@ -39,6 +39,9 @@ const ALIASES: Record<string, string> = {
   ury: 'UY', pry: 'PY', can: 'CA', aus: 'AU', nzl: 'NZ', jpn: 'JP', chn: 'CN', ind: 'IN', zaf: 'ZA', nga: 'NG', sen: 'SN',
 }
 
+/** Matching key: accent-free, lowercase, punctuation (including dots) removed. */
+const key = (s: string) => fold(s).replace(/[.@+]/g, ' ').replace(/\s+/g, ' ').trim()
+
 const DISPLAY_LOCALES = ['en', 'es', 'fr', 'de', 'it', 'pt']
 
 let lookup: Map<string, string> | null = null
@@ -55,14 +58,14 @@ function buildLookup(): Map<string, string> {
     for (const code of ISO_CODES) {
       const name = dn.of(code)
       if (!name || name === code) continue
-      const k = fold(name)
+      const k = key(name)
       if (!map.has(k)) map.set(k, code)
       // "Bosnia & Herzegovina" -> also without "&"; "Congo - Kinshasa" -> both parts
-      const simplified = fold(name.replace(/&/g, 'and').replace(/\(.*?\)/g, ''))
+      const simplified = key(name.replace(/&/g, 'and').replace(/\(.*?\)/g, ''))
       if (simplified && !map.has(simplified)) map.set(simplified, code)
     }
   }
-  for (const [k, v] of Object.entries(ALIASES)) map.set(fold(k), v)
+  for (const [k, v] of Object.entries(ALIASES)) map.set(key(k), v)
   return map
 }
 
@@ -75,11 +78,11 @@ export function resolveCountry(input: string): string {
     if (raw === raw.toUpperCase()) return raw.toUpperCase()
   }
   if (!lookup) lookup = buildLookup()
-  const k = fold(raw)
+  const k = key(raw)
   if (!k) return ''
   const direct = lookup.get(k)
   if (direct) return direct
-  const noParens = fold(raw.replace(/\(.*?\)/g, ''))
+  const noParens = key(raw.replace(/\(.*?\)/g, ''))
   if (noParens && lookup.get(noParens)) return lookup.get(noParens)!
   const noArticle = k.replace(/^(the|la|le|les|el|los|las|l)\s+/, '').replace(/^republic of\s+|^republica de\s+|^republique de\s+|^republique du\s+/, '')
   return lookup.get(noArticle) ?? ''

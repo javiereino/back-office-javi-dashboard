@@ -20,13 +20,20 @@ const OCR_FILES: Record<string, string> = {
   'lang/fra.traineddata.gz': nm('@tesseract.js-data/fra/4.0.0_best_int/fra.traineddata.gz'),
 }
 
+// pdf.js image decoders (WebAssembly, needed for many scanned PDFs) and standard fonts (also used by the PDF export).
+for (const dir of ['wasm', 'standard_fonts']) {
+  const abs = nm(`pdfjs-dist/${dir}`)
+  if (!fs.existsSync(abs)) continue
+  for (const f of fs.readdirSync(abs)) if (!f.startsWith('quickjs')) OCR_FILES[`../pdfjs/${dir}/${f}`] = path.join(abs, f)
+}
+
 function localOcrAssets(): Plugin {
   return {
     name: 'local-ocr-assets',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        const m = req.url?.match(/\/ocr\/(.+?)(\?|$)/)
-        const src = m && OCR_FILES[m[1]]
+        const m = req.url?.match(/\/(ocr|pdfjs)\/(.+?)(\?|$)/)
+        const src = m && OCR_FILES[m[1] === 'ocr' ? m[2] : `../pdfjs/${m[2]}`]
         if (!src || !fs.existsSync(src)) return next()
         res.setHeader('Content-Type', src.endsWith('.js') ? 'text/javascript' : 'application/octet-stream')
         fs.createReadStream(src).pipe(res)
@@ -35,7 +42,7 @@ function localOcrAssets(): Plugin {
     generateBundle() {
       for (const [name, src] of Object.entries(OCR_FILES)) {
         if (!fs.existsSync(src)) continue
-        this.emitFile({ type: 'asset', fileName: `ocr/${name}`, source: fs.readFileSync(src) })
+        this.emitFile({ type: 'asset', fileName: path.posix.normalize(`ocr/${name}`), source: fs.readFileSync(src) })
       }
     },
   }
@@ -96,15 +103,15 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,mjs,css,html,svg,png,woff2,ttf}'],
-        globIgnores: ['ocr/**'],
+        globIgnores: ['ocr/**', 'pdfjs/**'],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         navigateFallback: 'index.html',
         runtimeCaching: [
           {
             // OCR files are large; cache them the first time the user runs OCR.
-            urlPattern: ({ url }) => url.pathname.includes('/ocr/'),
+            urlPattern: ({ url }) => url.pathname.includes('/ocr/') || url.pathname.includes('/pdfjs/'),
             handler: 'CacheFirst',
-            options: { cacheName: 'ocr-assets', expiration: { maxEntries: 20 } },
+            options: { cacheName: 'ocr-assets', expiration: { maxEntries: 60 } },
           },
         ],
       },
