@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mission Per Diem</title>
+  <meta name="theme-color" content="#0a2351">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="top">
+    <div class="top-in">
+      <img src="icon.svg" alt="" class="logo">
+      <div class="brand">
+        <strong>INTERPOL</strong>
+        <span data-t="appTitle"></span>
+      </div>
+      <div class="top-actions">
+        <div class="lang" id="lang" role="group" aria-label="Language">
+          <button data-lang="es">ES</button><button data-lang="en">EN</button><button data-lang="fr">FR</button>
+        </div>
+        <button class="ghost" id="btnHistory"><span data-t="history"></span> <b id="histCount"></b></button>
+        <button class="ghost" id="btnSettings" data-t="settings"></button>
+      </div>
+    </div>
+    <div class="top-rule"></div>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <main class="wrap">
+    <section class="col">
+      <div class="card">
+        <h2><i>1</i><span data-t="secOfficer"></span></h2>
+        <div class="grid g3">
+          <label><span data-t="fName"></span><input id="oName" autocomplete="name"></label>
+          <label><span data-t="fEmail"></span><input id="oEmail" type="email" autocomplete="email"></label>
+          <label><span data-t="fUnit"></span><input id="oUnit"></label>
+          <label><span data-t="fRef"></span><input id="mRef"></label>
+          <label class="span2"><span data-t="fPurpose"></span><input id="mPurpose"></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><i>2</i><span data-t="secItinerary"></span></h2>
+        <p class="hint" data-t="itineraryHint"></p>
+        <div class="import">
+          <button class="secondary" id="btnImport" data-t="importBtn"></button>
+          <input type="file" id="fileItin" accept="application/pdf,.pdf,.txt" hidden>
+          <span class="hint" data-t="importHint"></span>
+        </div>
+        <label class="origin"><span data-t="fOrigin"></span><input id="mOrigin"></label>
+        <div id="timeline" class="timeline"></div>
+        <button class="add" id="btnAddDest" data-t="addDest"></button>
+      </div>
+
+      <div class="card">
+        <h2><i>3</i><span data-t="secCovered"></span></h2>
+        <p class="hint" data-t="coveredHint"></p>
+        <div class="chips" id="chips"></div>
+      </div>
+
+      <div class="card">
+        <h2><i>4</i><span data-t="secDays"></span></h2>
+        <p class="hint" data-t="daysHint"></p>
+        <div class="legend">
+          <span><b class="dot pay"></b><span data-t="stPay"></span></span>
+          <span><b class="dot provided"></b><span data-t="stProvided"></span></span>
+          <span><b class="dot na"></b><span data-t="stNa"></span></span>
+        </div>
+        <div id="days"></div>
+      </div>
+    </section>
+
+    <aside class="col side">
+      <div class="card total">
+        <div class="total-label" data-t="totalToPay"></div>
+        <div class="total-eur" id="totEUR">—</div>
+        <div class="total-usd" id="totUSD"></div>
+        <div id="sumLines" class="lines"></div>
+        <div class="fx">
+          <label><span data-t="fxLabel"></span>
+            <input id="fx" type="number" step="0.0001" min="0" inputmode="decimal">
+          </label>
+          <div class="fx-btns">
+            <button class="link" id="fxCircular" data-t="fxCircular"></button>
+            <button class="link" id="fxLive" data-t="fxLive"></button>
+          </div>
+          <div class="fx-note" id="fxNote"></div>
+        </div>
+        <div id="msgs"></div>
+        <div class="actions">
+          <button class="primary" id="btnPdf" data-t="btnPdf"></button>
+          <button class="secondary" id="btnEmail" data-t="btnEmail"></button>
+          <div class="row2">
+            <button class="ghost dark" id="btnXlsx" data-t="btnXlsx"></button>
+            <button class="ghost dark" id="btnSave" data-t="btnSave"></button>
+          </div>
+          <button class="link" id="btnNew" data-t="btnNew"></button>
+        </div>
+      </div>
+      <div id="rates"></div>
+      <p class="source" id="source"></p>
+    </aside>
+  </main>
+
+  <div class="mbar" id="mbar"><div><small data-t="totalToPay"></small><b id="mTot">—</b></div><button class="primary" id="mPdf" data-t="btnPdf"></button></div>
+
+  <dialog id="dlgHistory"><div class="dlg">
+    <header><h3 data-t="history"></h3><button class="x" data-close>×</button></header>
+    <div id="histList"></div>
+  </div></dialog>
+
+  <dialog id="dlgSettings"><div class="dlg">
+    <header><h3 data-t="settings"></h3><button class="x" data-close>×</button></header>
+    <div class="dlg-body">
+      <h4 data-t="setMethod"></h4>
+      <label class="radio"><input type="radio" name="method" value="icsc"><span data-t="setMethodIcsc"></span></label>
+      <label class="radio"><input type="radio" name="method" value="fixed"><span data-t="setMethodFixed"></span></label>
+      <h4 data-t="setShares"></h4>
+      <div class="grid g4">
+        <label><span data-t="breakfast"></span><input type="number" id="shB" min="0" step="1"></label>
+        <label><span data-t="lunch"></span><input type="number" id="shL" min="0" step="1"></label>
+        <label><span data-t="dinner"></span><input type="number" id="shD" min="0" step="1"></label>
+        <label><span data-t="incid"></span><input type="number" id="shI" min="0" step="1"></label>
+      </div>
+      <h4 data-t="setTimes"></h4>
+      <p class="hint" data-t="setTimesHint"></p>
+      <div class="grid g3">
+        <label><span data-t="breakfast"></span><input type="time" id="tmB"></label>
+        <label><span data-t="lunch"></span><input type="time" id="tmL"></label>
+        <label><span data-t="dinner"></span><input type="time" id="tmD"></label>
+      </div>
+      <h4 data-t="incid"></h4>
+      <label class="radio"><input type="radio" name="incidMode" value="day"><span data-t="setIncidDay"></span></label>
+      <label class="radio"><input type="radio" name="incidMode" value="night"><span data-t="setIncidNight"></span></label>
+      <h4 data-t="setTaxi"></h4>
+      <label><span data-t="setTaxiLabel"></span><input type="number" id="taxi" min="0" step="1"></label>
+      <h4 data-t="setFlightApi"></h4>
+      <p class="hint" data-t="setFlightApiHint"></p>
+      <label><span>AeroDataBox (RapidAPI) key</span><input id="apiKey" type="password" autocomplete="off"></label>
+      <div class="dlg-foot"><button class="link" id="btnReset" data-t="setReset"></button><button class="primary" data-close data-t="done"></button></div>
+    </div>
+  </div></dialog>
+
+  <dialog id="dlgImport"><div class="dlg wide">
+    <header><h3 data-t="importTitle"></h3><button class="x" data-close>×</button></header>
+    <div class="dlg-body">
+      <p class="hint" data-t="importReview"></p>
+      <div id="impSegs"></div>
+      <details><summary data-t="importPaste"></summary>
+        <textarea id="impText" rows="6"></textarea>
+        <button class="ghost dark" id="impParse" data-t="importReparse"></button>
+      </details>
+      <div class="dlg-foot"><button class="link" id="impAdd" data-t="importAddRow"></button><button class="primary" id="impApply" data-t="importApply"></button></div>
+    </div>
+  </div></dialog>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="dsa-data.js"></script>
+  <script src="calc.js"></script>
+  <script src="i18n.js"></script>
+  <script src="itin.js"></script>
+  <script src="vendor/jspdf.umd.min.js"></script>
+  <script src="vendor/jspdf.plugin.autotable.min.js"></script>
+  <script src="vendor/xlsx.mini.min.js"></script>
+  <script src="report.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
