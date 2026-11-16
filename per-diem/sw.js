@@ -1,5 +1,5 @@
 /* Offline support: network first (so new rates and fixes arrive at once), cached copy when offline. */
-var CACHE = 'perdiem-v3';
+var CACHE = 'perdiem-v4';
 var FILES = ['./', 'index.html', 'app.css', 'app.js', 'calc.js', 'i18n.js', 'itin.js', 'report.js', 'dsa-data.js', 'icon.svg', 'icon-192.png',
   'manifest.webmanifest', 'vendor/jspdf.umd.min.js', 'vendor/jspdf.plugin.autotable.min.js', 'vendor/xlsx.mini.min.js', 'vendor/pdf.min.js', 'vendor/pdf.worker.min.js'];
 self.addEventListener('install', function (e) { e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); })); });
