@@ -213,17 +213,38 @@
     $('[data-info="' + i + '"]').innerHTML = destInfo(BYKEY[key]); renderTimelineLabels(); recalc();
   }
 
-  /* ---------- covered chips ---------- */
-  var CHIPS = [['hotel', 'hotelPaid'], ['breakfast', 'bPaid'], ['lunch', 'lPaid'], ['dinner', 'dPaid']];
+  /* ---------- covered costs: how many nights / meals are paid by someone else ---------- */
+  var COVER = [['hotel', 'hotelPaid'], ['breakfast', 'bPaid'], ['lunch', 'lPaid'], ['dinner', 'dPaid']];
+  function setState(date, comp, state) { // write one calendar cell, keeping overrides minimal
+    var day = result.days.filter(function (d) { return d.date === date; })[0]; if (!day) return;
+    var x = day.comps[comp], def = x.auto === 'pay' && mission.provided[comp] ? 'provided' : x.auto, k = date + '|' + comp;
+    if (state === def) delete mission.overrides[k]; else mission.overrides[k] = state;
+  }
+  function coverCount(c) {
+    var n = 0, max = 0;
+    if (result && result.ok) result.days.forEach(function (d) { var s = d.comps[c].state; if (s !== 'na') max++; if (s === 'provided') n++; });
+    return { n: n, max: max };
+  }
   function renderChips() {
-    var any = CHIPS.some(function (c) { return mission.provided[c[0]]; });
-    $('#chips').innerHTML = '<button class="chip full' + (any ? '' : ' on') + '" data-chip="full">✓ ' + t('fullPerDiem') + '</button>' +
-      CHIPS.map(function (c) { return '<button class="chip' + (mission.provided[c[0]] ? ' on' : '') + '" data-chip="' + c[0] + '">' + COMP_ICON[c[0]] + ' ' + t(c[1]) + '</button>'; }).join('');
+    var ok = result && result.ok, any = false;
+    var rows = COVER.map(function (c) {
+      var k = coverCount(c[0]); if (k.n) any = true;
+      return '<div class="cov' + (k.n ? ' on' : '') + '"><span class="cov-l">' + COMP_ICON[c[0]] + ' ' + t(c[1]) + '</span>' +
+        '<span class="step"><button data-cov="' + c[0] + '" data-a="-" aria-label="−"' + (k.n ? '' : ' disabled') + '>−</button>' +
+        '<b>' + k.n + '</b><small>/ ' + k.max + '</small>' +
+        '<button data-cov="' + c[0] + '" data-a="+" aria-label="+"' + (ok && k.n < k.max ? '' : ' disabled') + '>+</button></span>' +
+        '<button class="all" data-cov="' + c[0] + '" data-a="all"' + (ok && k.n < k.max ? '' : ' disabled') + '>' + t('all') + '</button></div>';
+    }).join('');
+    $('#chips').innerHTML = '<button class="chip full' + (any ? '' : ' on') + '" data-cov="full">✓ ' + t('fullPerDiem') + '</button>' + rows;
   }
   $('#chips').addEventListener('click', function (e) {
-    var b = e.target.closest('[data-chip]'); if (!b) return;
-    if (b.dataset.chip === 'full') { mission.provided = {}; mission.overrides = {}; } else mission.provided[b.dataset.chip] = !mission.provided[b.dataset.chip];
-    renderChips(); recalc();
+    var b = e.target.closest('[data-cov]'); if (!b || b.disabled) return;
+    var c = b.dataset.cov, a = b.dataset.a, days = result && result.ok ? result.days : [], i;
+    if (c === 'full') { mission.provided = {}; mission.overrides = {}; }
+    else if (a === 'all') { mission.provided[c] = true; days.forEach(function (d) { delete mission.overrides[d.date + '|' + c]; }); }
+    else if (a === '+') { for (i = 0; i < days.length; i++) if (days[i].comps[c].state === 'pay') { setState(days[i].date, c, 'provided'); break; } }
+    else { for (i = days.length - 1; i >= 0; i--) if (days[i].comps[c].state === 'provided') { setState(days[i].date, c, 'pay'); break; } }
+    recalc();
   });
 
   /* ---------- results ---------- */
@@ -250,9 +271,8 @@
   $('#days').addEventListener('click', function (e) {
     var b = e.target.closest('.cell'); if (!b) return;
     var day = result.days.filter(function (d) { return d.date === b.dataset.d; })[0], x = day.comps[b.dataset.c];
-    var order = ['pay', 'provided', 'na'], next = order[(order.indexOf(x.state) + 1) % 3], k = b.dataset.d + '|' + b.dataset.c;
-    var def = x.auto === 'pay' && mission.provided[b.dataset.c] ? 'provided' : x.auto;
-    if (next === def) delete mission.overrides[k]; else mission.overrides[k] = next;
+    var order = ['pay', 'provided', 'na'];
+    setState(b.dataset.d, b.dataset.c, order[(order.indexOf(x.state) + 1) % 3]);
     recalc();
   });
 
@@ -298,10 +318,10 @@
 
   function recalc() {
     result = P.compute(buildMission(), settings);
-    renderDays(); renderSummary(); renderRates();
+    renderChips(); renderDays(); renderSummary(); renderRates();
     store(LS.draft, mission);
   }
-  function renderAll() { renderStatic(); fillFields(); renderTimeline(); renderChips(); recalc(); }
+  function renderAll() { renderStatic(); fillFields(); renderTimeline(); recalc(); }
 
   /* ---------- exchange rate ---------- */
   function setFx(v, src, date) {
