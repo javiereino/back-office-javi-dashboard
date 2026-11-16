@@ -61,6 +61,17 @@
   function areaName(a) { return a.name === 'Elsewhere' ? t('elsewhere') : a.name; }
   function areaLabel(a) { return areaName(a) + ' — ' + a.country; }
   function isSpecial(a) { return a.notes.indexOf(1) >= 0 || a.notes.indexOf(2) >= 0; }
+  // Other rates published for the same city: named hotels with their own (higher) rate, or seasonal rates.
+  function baseName(a) { return a.name.replace(/\s*\(.*$/, '').trim(); }
+  function variants(a) { var b = baseName(a); return AREAS.filter(function (x) { return x.country === a.country && baseName(x) === b; }); }
+  function variantSelect(a, i) {
+    if (!a) return '';
+    var v = variants(a); if (v.length < 2) return '';
+    return '<label class="variant"><span>' + t('rateVariant') + '</span><select data-variant="' + i + '">' + v.map(function (x) {
+      var detail = /\((.*)\)\s*(.*)$/.exec(x.name), lab = detail ? (detail[1] + (detail[2] ? ' ' + detail[2] : '')) : t('rateStandard');
+      return '<option value="' + esc(x.key) + '"' + (x.key === a.key ? ' selected' : '') + '>' + esc((isSpecial(x) ? t('rateHotel') + ': ' : '') + lab) + ' — ' + x.usd + ' USD · ' + x.room + ' %</option>';
+    }).join('') + '</select><small>' + t('rateVariantHint') + '</small></label>';
+  }
 
   /* ---------- state ---------- */
   var defaultFx = P.impliedEurRate(DATA);
@@ -139,7 +150,7 @@
           '<div class="box-h"><span>' + t('destination') + (n > 1 ? ' ' + (i + 1) : '') + '</span>' +
           (n > 1 ? '<button class="rm" data-rm="' + i + '">' + t('remove') + '</button>' : '') + '</div>' +
           '<div class="picker"><input data-dest="' + i + '" value="' + (a ? esc(areaLabel(a)) : '') + '" placeholder="' + t('destPlaceholder') + '" autocomplete="off" spellcheck="false"></div>' +
-          '<div class="destinfo" data-info="' + i + '">' + destInfo(a) + '</div></div></div>';
+          variantSelect(a, i) + '<div class="destinfo" data-info="' + i + '">' + destInfo(a) + '</div></div></div>';
       }
     }
     $('#timeline').innerHTML = h;
@@ -210,9 +221,12 @@
   }
   function closePicker(inp) { var ul = $('ul', inp.parentNode); if (ul) ul.remove(); }
   function pick(inp, key) {
-    var i = +inp.dataset.dest; mission.dests[i].key = key; inp.value = areaLabel(BYKEY[key]); closePicker(inp);
-    $('[data-info="' + i + '"]').innerHTML = destInfo(BYKEY[key]); renderTimelineLabels(); recalc();
+    var i = +inp.dataset.dest; mission.dests[i].key = key; renderTimeline(); recalc();
   }
+  tl.addEventListener('change', function (e) {
+    if (e.target.dataset.variant == null) return;
+    mission.dests[+e.target.dataset.variant].key = e.target.value; renderTimeline(); recalc();
+  });
 
   /* ---------- covered costs: how many nights / meals are paid by someone else ---------- */
   var COVER = [['hotel', 'hotelPaid'], ['breakfast', 'bPaid'], ['lunch', 'lPaid'], ['dinner', 'dPaid']];
