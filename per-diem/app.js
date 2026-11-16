@@ -87,6 +87,7 @@
     document.documentElement.lang = lang;
     $$('[data-t]').forEach(function (el) { el.textContent = t(el.getAttribute('data-t')); });
     document.title = 'INTERPOL · ' + t('appTitle');
+    $('#back').setAttribute('aria-label', t('backDashFull')); $('#back').title = t('backDashFull');
     $$('#lang button').forEach(function (b) { b.classList.toggle('on', b.dataset.lang === lang); });
     $('#source').textContent = t('sourceLine', { ref: DATA.ref, d: fmtDate(DATA.date, true), n: AREAS.length });
     var d = new Date(DATA.date + 'T00:00:00Z'), now = new Date();

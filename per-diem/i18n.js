@@ -1,7 +1,7 @@
 /* UI + report strings: Spanish, English, French. */
 window.I18N = {
   es: {
-    appTitle: 'Calculadora de dietas de misión', history: 'Misiones', settings: 'Ajustes', done: 'Hecho',
+    appTitle: 'Calculadora de dietas de misión', backDash: 'Dashboard', backDashFull: 'Volver al dashboard', history: 'Misiones', settings: 'Ajustes', done: 'Hecho',
     secOfficer: 'Oficial y misión', fName: 'Nombre del oficial', fEmail: 'Email', fUnit: 'Unidad / Dirección',
     fRef: 'Referencia de misión', fPurpose: 'Objeto de la misión',
     secItinerary: 'Itinerario y vuelos',
@@ -61,7 +61,7 @@ window.I18N = {
     rDisclaimer: 'Documento de apoyo generado automáticamente; no sustituye a la liquidación oficial.'
   },
   en: {
-    appTitle: 'Mission per diem calculator', history: 'Missions', settings: 'Settings', done: 'Done',
+    appTitle: 'Mission per diem calculator', backDash: 'Dashboard', backDashFull: 'Back to the dashboard', history: 'Missions', settings: 'Settings', done: 'Done',
     secOfficer: 'Officer and mission', fName: 'Officer name', fEmail: 'Email', fUnit: 'Unit / Directorate',
     fRef: 'Mission reference', fPurpose: 'Purpose of mission',
     secItinerary: 'Itinerary and flights',
@@ -121,7 +121,7 @@ window.I18N = {
     rDisclaimer: 'Automatically generated support document; it does not replace the official settlement.'
   },
   fr: {
-    appTitle: 'Calculateur d\'indemnités de mission', history: 'Missions', settings: 'Réglages', done: 'Terminé',
+    appTitle: 'Calculateur d\'indemnités de mission', backDash: 'Dashboard', backDashFull: 'Retour au dashboard', history: 'Missions', settings: 'Réglages', done: 'Terminé',
     secOfficer: 'Fonctionnaire et mission', fName: 'Nom du fonctionnaire', fEmail: 'E-mail', fUnit: 'Unité / Direction',
     fRef: 'Référence de mission', fPurpose: 'Objet de la mission',
     secItinerary: 'Itinéraire et vols',

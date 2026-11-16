@@ -15,6 +15,10 @@ input,select,textarea{font:inherit;color:inherit}
 .top-in{max-width:1240px;margin:auto;display:flex;align-items:center;gap:12px;padding:12px 16px}
 .top-rule{height:3px;background:linear-gradient(90deg,var(--gold),#e7d39a 40%,transparent)}
 .logo{width:40px;height:40px;flex:none}
+.back{display:flex;align-items:center;gap:6px;flex:none;color:#fff;text-decoration:none;font-size:13px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);border-radius:999px;padding:7px 12px 7px 10px}
+.back:hover{background:rgba(255,255,255,.2)}
+.back span{font-size:16px;line-height:1}
+.back b{font-weight:600}
 .brand{display:flex;flex-direction:column;line-height:1.15;min-width:0}
 .brand strong{letter-spacing:.18em;font-size:15px}
 .brand span{font-size:13px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -209,7 +213,9 @@ textarea{margin:8px 0;font:12px/1.4 ui-monospace,Menlo,monospace}
 @media (max-width:640px){
   .brand span{display:none}
   .brand strong{font-size:12.5px;letter-spacing:.1em}
-  .logo{width:30px;height:30px}
+  .logo{display:none}
+  .back{padding:0;width:32px;height:32px;justify-content:center}
+  .back b{display:none}
   .top-in{gap:7px;padding:10px 12px}
   .top-actions{gap:6px}
   .lang button{padding:5px 6px;font-size:11px}
