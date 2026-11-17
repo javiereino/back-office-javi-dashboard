@@ -18,8 +18,10 @@
     // header band
     doc.setFillColor.apply(doc, NAVY); doc.rect(0, 0, W, 30, 'F');
     doc.setFillColor.apply(doc, GOLD); doc.rect(0, 30, W, 1.2, 'F');
-    doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.setCharSpace(1.2); txt('INTERPOL', M, 13); doc.setCharSpace(0);
-    doc.setFontSize(12); doc.setFont('helvetica', 'normal'); txt(t('rTitle'), M, 21);
+    var E = window.INTERPOL_EMBLEM, tx0 = M;
+    if (E) { var eh = 22, ew = eh * E.w / E.h; doc.addImage(E.src, 'PNG', M, 4, ew, eh); tx0 = M + ew + 5; }
+    doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.setCharSpace(1.2); txt('INTERPOL', tx0, 13); doc.setCharSpace(0);
+    doc.setFontSize(12); doc.setFont('helvetica', 'normal'); txt(t('rTitle'), tx0, 21);
     doc.setFontSize(8.5); txt(t('rGenerated') + ' ' + c.fmtDate(new Date().toISOString(), true), W - M, 13, { align: 'right' });
     if (m.ref) { doc.setFont('helvetica', 'bold'); doc.setFontSize(10); txt(t('rRef') + ': ' + m.ref, W - M, 21, { align: 'right' }); }
 
@@ -118,14 +120,15 @@
     });
 
     // method
-    section(t('rMethod'));
     var s = c.settings, sh = s.shares, sum = sh.breakfast + sh.lunch + sh.dinner + sh.incid;
     var split = s.method === 'fixed' ? t('rSplitFixed', { b: sh.breakfast, l: sh.lunch, d: sh.dinner, i: sh.incid, r: 100 - sum }) : t('rSplitIcsc', { b: sh.breakfast, l: sh.lunch, d: sh.dinner, i: sh.incid });
     var method = t('rMethodText', { ref: c.data.ref, d: c.fmtDate(c.data.date, true), split: split, tb: s.mealTimes.breakfast, tl: s.mealTimes.lunch, td: s.mealTimes.dinner,
       inc: t(s.incidMode === 'night' ? 'rIncNight' : 'rIncDay'), fx: fx, taxi: eur(s.taxiEUR) });
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor.apply(doc, MUTE);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
     var lines = doc.splitTextToSize(clean(method), W - 2 * M);
-    if (y + lines.length * 4 > H - 18) { doc.addPage(); y = 18; }
+    if (y + 5 + lines.length * 4 > H - 18) { doc.addPage(); y = 18; } // keep the heading with its text
+    section(t('rMethod'));
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor.apply(doc, MUTE);
     doc.text(lines, M, y);
 
     // footers
