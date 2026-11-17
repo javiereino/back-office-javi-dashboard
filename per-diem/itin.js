@@ -25,31 +25,64 @@
   function strip(s) { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
   function year(y, def) { if (!y) return def; y = +y; return y < 100 ? 2000 + y : y; }
 
+  // Full month names (EN/ES/FR) so that a word like "Marriott" is never taken for "Mar".
+  var FULL = [
+    'january february march april may june july august september october november december',
+    'enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre diciembre',
+    'janvier fevrier mars avril mai juin juillet aout septembre octobre novembre decembre',
+    '- - - - - - - - setiembre - - -'
+  ].map(function (l) { return l.split(' '); });
+  function monthOf(word) {
+    var w = word.toLowerCase().replace(/\.$/, '');
+    if (MONTHS[w]) return MONTHS[w];
+    for (var l = 0; l < FULL.length; l++) for (var k = 0; k < 12; k++) if (w.length >= 3 && FULL[l][k].indexOf(w) === 0) return k + 1;
+    return 0;
+  }
+
   function findDates(text, defYear) {
     var out = [], m, t = strip(text);
-    var monthAlt = Object.keys(MONTHS).sort(function (a, b) { return b.length - a.length; }).join('|');
+    var alt = '((?:' + Object.keys(MONTHS).sort(function (a, b) { return b.length - a.length; }).join('|') + ')[a-z]*)';
+    // Each rule returns [year or null, month word, day]. Order matters: earlier rules win overlaps.
     var res = [
-      // 20NOV26, 20 Nov 2026, 20 novembre 2026, 20-Nov-26, 20 de noviembre de 2026
-      [new RegExp('\\b(\\d{1,2})[\\s.-]*(?:de\\s+)?(' + monthAlt + ')[a-z]*\\.?[\\s,.-]*(?:de\\s+)?((?:20)?\\d{2})?(?![\\d:hH])', 'gi'),
-        function (m) { return [year(m[3], defYear), MONTHS[m[2].toLowerCase()], +m[1]]; }],
-      // Nov 20, 2026
-      [new RegExp('\\b(' + monthAlt + ')[a-z]*\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?,?\\s+(20\\d{2})\\b', 'gi'),
-        function (m) { return [+m[3], MONTHS[m[1].toLowerCase()], +m[2]]; }],
+      // Nov 20, 2026 · OCT19,2026
+      [new RegExp('\\b' + alt + '\\.?\\s*(\\d{1,2})(?:st|nd|rd|th)?\\b,?\\s*(20\\d{2})\\b', 'gi'), function (m) { return [+m[3], m[1], +m[2]]; }],
       // 2026-11-20
       [/\b(20\d{2})-(\d{2})-(\d{2})\b/g, function (m) { return [+m[1], +m[2], +m[3]]; }],
+      // 20NOV26, 20 Nov 2026, 20 novembre 2026, 20-Nov-26, 20 de noviembre de 2026
+      [new RegExp('\\b(\\d{1,2})[\\s.-]*(?:de\\s+)?' + alt + '\\.?[\\s,.-]*(?:de\\s+)?((?:20)?\\d{2})?(?![\\d:hH])', 'gi'),
+        function (m) { return [m[3] ? year(m[3]) : null, m[2], +m[1]]; }],
       // 20/11/2026, 20.11.26 (day first — European convention)
-      [/\b(\d{1,2})[\/.](\d{1,2})[\/.]((?:20)?\d{2})\b/g, function (m) { return [year(m[3], defYear), +m[2], +m[1]]; }]
+      [/\b(\d{1,2})[\/.](\d{1,2})[\/.]((?:20)?\d{2})\b/g, function (m) { return [year(m[3]), +m[2], +m[1]]; }],
+      // Mon, Oct 19 (no year: taken from the nearest dated header)
+      [new RegExp('\\b' + alt + '\\.?\\s*(\\d{1,2})(?:st|nd|rd|th)?\\b(?!\\s*[:.\\/]\\d)', 'gi'), function (m) { return [null, m[1], +m[2]]; }]
     ];
     res.forEach(function (r) {
       while ((m = r[0].exec(t))) {
-        var d = r[1](m);
-        if (d[1] >= 1 && d[1] <= 12 && d[2] >= 1 && d[2] <= 31 && d[0] > 2000 && d[0] < 2100) {
-          if (!out.some(function (o) { return m.index < o.end && m.index + m[0].length > o.pos; }))
-            out.push({ pos: m.index, end: m.index + m[0].length, iso: d[0] + '-' + pad(d[1]) + '-' + pad(d[2]) });
-        }
+        var d = r[1](m), mo = typeof d[1] === 'number' ? d[1] : monthOf(d[1]);
+        if (!mo || d[2] < 1 || d[2] > 31 || (d[0] != null && (d[0] < 2000 || d[0] > 2100))) continue;
+        var pos = m.index, end = m.index + m[0].length;
+        if (out.some(function (o) { return pos < o.end && end > o.pos; })) continue;
+        out.push({ pos: pos, end: end, y: d[0], mo: mo, d: d[2] });
       }
     });
-    return out.sort(function (a, b) { return a.pos - b.pos; });
+    out.sort(function (a, b) { return a.pos - b.pos; });
+    var docYear = (out.filter(function (o) { return o.y != null; })[0] || {}).y || defYear, lastY = null, lastMo = null;
+    out.forEach(function (o) {
+      if (o.y == null) {
+        o.y = lastY || docYear;
+        if (lastMo && o.mo < lastMo - 6) o.y++; // e.g. a December header followed by a January flight
+      } else { lastY = o.y; lastMo = o.mo; }
+      o.iso = o.y + '-' + pad(o.mo) + '-' + pad(o.d);
+    });
+    return out;
+  }
+
+  // Some PDFs letter-space their headings ("M O N , O C T 1 9 , 2 0 2 6"): join such lines back together.
+  function unspace(text) {
+    return text.split('\n').map(function (l) {
+      var tk = l.trim().split(/\s+/);
+      return tk.length >= 6 && tk.filter(function (x) { return x.length === 1; }).length >= tk.length * 0.7 ? tk.join('') : l;
+    }).join('\n');
   }
 
   function findTimes(text) {
@@ -63,7 +96,7 @@
   }
 
   function findFlights(text) {
-    var out = [], m, re = /(^|[^A-Z0-9])([A-Z][A-Z0-9]|\d[A-Z])\s?(\d{2,4})(?![\d:\/.-])/g;
+    var out = [], m, re = /(^|[^A-Z0-9])([A-Z][A-Z0-9]|\d[A-Z])\s?(\d{2,4})(?![\dA-Za-z:\/.-])/g; // not "A321Neo"
     while ((m = re.exec(text))) {
       if (AIRLINE_SET[m[2]]) out.push({ pos: m.index + m[1].length, no: m[2] + m[3].replace(/^0+(?=\d{2})/, '') });
     }
@@ -85,7 +118,7 @@
   }
 
   function parse(text, defYear) {
-    text = String(text || '').replace(/\r/g, '').replace(/[\u00a0\t]+/g, ' ');
+    text = unspace(String(text || '').replace(/\r/g, '').replace(/[\u00a0\t]+/g, ' '));
     defYear = defYear || new Date().getFullYear();
     var flights = findFlights(text), dates = findDates(text, defYear), segs = [], seen = {};
     flights.forEach(function (f, i) {

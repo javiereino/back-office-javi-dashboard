@@ -57,4 +57,33 @@ assert.strictEqual(s.length, 4); assert.strictEqual(s[2].dep, '2027-03-05T13:00'
 assert.deepStrictEqual(I.suggestStays(s), [false, true, true]);
 assert.strictEqual(I.mergeLegs(s, I.suggestStays(s)).length, 3);
 assert.deepStrictEqual(I.parse('nothing useful here 12:30', 2026), []);
+
+// E. Agency e-ticket: letter-spaced day headers, month-first dates without year, aircraft type "A321Neo",
+//    and a hotel name ("Marriott") that must not be read as a month. Invented data.
+const E = `Y O U R E - T I C K E T
+Date: 02 Feb 27
+Feb 15 - Feb 19, 2027 | TRIP LOCATOR: ABC123
+M O N , F E B 1 5 , 2 0 2 7
+EXAMPLE AIRLINES AF 1501 CONFIRMED
+E-Ticket: 0000000000000 | Booking Reference: XYZ999
+DEPARTURE ARRIVAL
+Mon, Feb 15 | 21:40 Tue, Feb 16 | 07:05
+Lyon Saint Exupery (LYS) Dubai International (DXB)
+Class: Economy (S) Aircraft: Airbus A321Neo Operated by: Example
+Flight duration: 6h 25m (non-stop)
+Hotel: Marriott 5 nights
+F R I, F E B 1 9 , 2 0 2 7
+EXAMPLE AIRLINES AF 1502 CONFIRMED
+DEPARTURE ARRIVAL
+Fri, Feb 19 | 09:15 Fri, Feb 19 | 13:50
+Dubai International (DXB) Lyon Saint Exupery (LYS)
+Aircraft: Airbus A321Neo`;
+s = I.parse(E, 2026);
+eq(s, [['AF1501', 'LYS', 'DXB', '2027-02-15T21:40', '2027-02-16T07:05'], ['AF1502', 'DXB', 'LYS', '2027-02-19T09:15', '2027-02-19T13:50']], 'E');
+
+// F. Yearless dates crossing new year take the following year
+s = I.parse(`M O N , D E C 2 8 , 2 0 2 6
+Flight IB 3401  Mon, Dec 28 | 07:40 Lyon (LYS) Mon, Dec 28 | 09:35 Madrid (MAD)
+Flight IB 3402  Sat, Jan 2 | 16:00 Madrid (MAD) Sat, Jan 2 | 17:50 Lyon (LYS)`, 2026);
+assert.deepStrictEqual(s.map(x => x.dep), ['2026-12-28T07:40', '2027-01-02T16:00'], 'F');
 console.log('itinerary parser tests passed');
